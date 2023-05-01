@@ -53,3 +53,91 @@ $php artisan serve
 ・Laravelのサービスコンテナはコンストラクタやメソッドの引数で設定された肩宣言を自動的に判断し、それに対応するクラスをインスタンス化し、自動でそのインスタンスを注入してくれる。
 例）
 例えば、つぶやき一覧のシングルアクションコントローラにuse\App\Services\TweetService;でTweetServiceクラスを明示的に設定していたため、__invokeメソッドの引数で設定されたTweetService $tweetServiceからLaravelのサービスコンテナがクラスを自動的に判別、TweetServiceクラスのインスタンスを生成して、$TweetServiceに注入したという動きになる。
+
+■４、ログイン機能作成 Laravelの認証について
+○Laravelスターターキット
+→認証機能を自動生成する（scaffold）、Laravelのパッケージのこと。
+
+・Laravel Jetstream(Laravel8~)
+→認証機能（ログイン、登録、パスワードリセット、メール確認、二要素認証、API認証）＋フロント
+※フロント部分はvue.jsも選べたりする。実務ではこちらが多い。
+
+・Laravel Breeze
+→最小限の認証機能（ログイン、登録、パスワードリセット、メール確認など）＋Blade
+※Laravelを学習中の人にはいい。中身がわかる。
+
+・Laravel Fortify
+→Jetstreamの認証部分。
+
+※今回これらは使わずに自作していく。
+
+○Laravelの認証
+・scaffoldを使わない場合
+要件と合わない場合など、、
+→Laravel認証クラスを使う
+
+・Authファザードのattemptを使う
+→Laravelの公式ドキュメントを確認
+今回はドキュメント通りに実装。
+
+○その他認証に関すること
+・ログインの判定
+ルートミドルウェアを使う
+→authミドルウェアをroutingで使う
+→認証されていない場合はリダイレクト
+※ミドルウェア : 送信リクエストの処理
+
+・認証ユーザーの取得
+Authファサードを使う
+→認証ユーザを返す： Auth::user()
+→ログイン済みかどうかを返す：Auth::check()
+
+○復習：ログインの仕組み
+１、ログインフィームから情報を入力
+２、DB情報で判定し、正しければユーザー情報をセッションに保存（サーバー）
+３、ブラウザのクッキーのセッションIDとサーバーのセッションIDを照らし合わせる
+４、セッション情報があれば認証済み（ログイン）とする
+
+○実際にやってみよう！
+１、Authの確認・実装
+２、ログイン後ページ作成
+３、ミドルウェアの設定
+
+○Auth::attemptの中身
+Auth::attemptで簡単にログインを判定できた。
+vendor→laravel→framework→src→illuminate→Auth
+中身の処理は、
+SessionGuard.php→ログインの処理をしている。
+EloquentUserProvider.php→ユーザーを取得している。
+
+○ミドルウェアを使うことによって、認証済みユーザーのみこのルートにアクセスできるようにする。
+ログイン前はguest
+ログイン後はauth
+事前にlaravelが用意してくれているミドルウェア。
+
+■５、ログアウト機能作成
+○ログアウトの流れ
+１、ログアウトボタンをクリック
+２、POSTでログアウトのurlにリクエストが飛ぶ
+３、認証ユーザーのセッションを削除
+４、トップ画面に戻る
+
+○Bladeコンポーネント
+・公式ドキュメント
+php artisan make:component Alert
+のような形で作成できる
+
+・何ができる？
+Viewの共通部分を作るイメージ
+他のBladeから値を渡せ足りるので便利
+includeと同じようなイメージ
+
+○その他認証に関すること
+・$request->session()->regenerate Token();
+ボタン連打による二重送信を防ぐことも可能
+
+・redirect()からredirect()->route()
+route()で名前つきルートのURL生成
+
+・GETとPOST
+GETはページ表示用、POSTは処理用（ざっくり）
